@@ -1,0 +1,53 @@
+---
+title: "Salaio"
+author: "Daniel"
+date: "2024-12-10"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+```
+
+
+```{r}
+dados = readxl::read_xlsx("SalarioMinimo.xlsx", col_names = F)
+```
+
+```{r}
+colnames(dados) = c("data1", "salario", "data2", "inflacao")
+```
+
+```{r}
+presidentes = c("FHC", "FHC", "FHC", "FHC", "FHC", "FHC", "FHC", "FHC",
+                "LULA", "LULA", "LULA", "LULA", "LULA", "LULA", "LULA", "LULA",
+                "DILMA", "DILMA", "DILMA", "DILMA", "DILMA", "DILMA", 
+                "TEMER", "TEMER", "JAIR", "JAIR", "JAIR", "JAIR", "LULA")
+
+dados %>% 
+  mutate(inflaReal = inflacao |> as.numeric()) %>% 
+  mutate(inflacao = 1+ as.numeric(inflacao)/100) %>% 
+  mutate(cuminfla = cumprod(inflacao), compra = c(100, (100*lag(cuminfla))|>round() |> na.omit())) %>% 
+  mutate(desval = round(10000/compra)) %>% mutate(salReal = (salario*desval/100) |> round()) %>% 
+  mutate(governo = presidentes)-> dadosC
+
+dadosC
+```
+
+```{r}
+dadosC %>% 
+  ggplot(aes(x = data2, y = salReal))+
+  geom_bar(stat = "identity")+
+  theme_classic()+
+  labs(x = "Ano", y = "Salario Minimo Ajustado Pela Inflação")
+```
+
+
+```{r}
+dadosC %>% 
+  ggplot(aes(x = data2, y = salReal, fill = governo))+
+  geom_bar(stat = "identity")+
+  theme_classic()+
+  labs(x = "Ano", y = "Salario Minimo Ajustado Pela Inflação")
+```
+
